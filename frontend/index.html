@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>3D Reconstruction App</title>
+</head>
+<body>
+    <h1>Upload Video or Images for 3D Reconstruction</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" name="file" required><br><br>
+        <input type="submit" value="Upload">
+    </form>
+
+    <div id="progress-container">
+        <progress id="upload-progress" value="0" max="100"></progress>
+        <span id="progress-text">0%</span>
+    </div>
+
+    <div id="result">
+        <h2>Generated 3D Model:</h2>
+        <iframe id="model-viewer" width="600" height="400"></iframe>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const progress = document.getElementById('upload-progress');
+        const progressText = document.getElementById('progress-text');
+        const modelViewer = document.getElementById('model-viewer');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const request = new XMLHttpRequest();
+
+            request.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progress.value = percentComplete;
+                    progressText.textContent = percentComplete.toFixed(2) + '%';
+                }
+            };
+
+            request.onload = () => {
+                const response = JSON.parse(request.response);
+                const modelPath = response.model_path;
+                modelViewer.src = modelPath;  // Assuming we have a viewer for 3D models.
+            };
+
+            request.open('POST', '/upload/');
+            request.send(formData);
+        };
+    </script>
+</body>
+</html>
